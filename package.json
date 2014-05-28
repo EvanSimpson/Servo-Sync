@@ -1,0 +1,20 @@
+{
+  "name": "servo-sync",
+  "version": "0.1.0",
+  "description": "Tessel project to translate accelerometer reading into servo motion",
+  "main": "index.js",
+  "author": "Evan Simpson <evan@technical.io",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "keywords": [
+    "tessel",
+    "servo",
+    "pca9685",
+    "accelerometer",
+    "mma8452q"
+  ],
+  "dependencies": {
+    "accel-mma84": "^0.2.3",
+    "servo-pca9685": "^0.1.2"
+  }
+}
