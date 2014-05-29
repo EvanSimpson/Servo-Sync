@@ -1,21 +1,32 @@
+// Include Tessel and module libraries
+// Accelerometer is attached to Port B
+// Servo is attacher to Port D
 var tessel = require('tessel');
 var accel = require('accel-mma84').use(tessel.port['B']);
 var servo = require('servo-pca9685').use(tessel.port['D']);
 
+// Constant used for LPF
 var ALPHA = 0.35;
+
+// Accelerometer Z value in resting position
+// Your may need to change this value
 var Z_REST = 0.97;
 
+// Accelerometer value holders
 var y_last = 0;
 var z_last = 0;
 var y_filtered = 0;
 var z_filtered = 0;
 
+// Servo port, starting position, and historical position
+var servo1 = 1;
 var position = 0.5;
 var last_position = 0.5;
-var servo1 = 1;
 
+// Flag for whether or not to use the LPF
 var filter = true;
 
+// Toggle LPF with the 'Config' button on Tessel
 tessel.button.on('press', function(time) {
   filter = !filter;
   if (filter){
@@ -24,15 +35,16 @@ tessel.button.on('press', function(time) {
 });
 
 servo.on('ready', function() {
+
+  // Put the servo in the starting position
   servo.move(servo1, position);
+
   accel.on('ready', function () {
-
-
 
     accel.on('data', function (xyz) {      
 
-      // Run the data through a low pass filter before storing
       if (filter) {
+        // Run the data through a low pass filter before storing
         y_filtered = (y_last+(ALPHA*(xyz[1]-y_last)))
         z_filtered = (z_last+(ALPHA*(xyz[2]-z_last)))
       } else {
@@ -40,15 +52,21 @@ servo.on('ready', function() {
         z_filtered = xyz[2];  
       }
 
+      // Stash the current values for the next data event
       y_last = y_filtered;
       z_last = z_filtered;
 
+      // Calculate position for servo relative to angle of accelerometer
       position = .5*(1+((-y_last/(Math.abs(y_last))) *(Z_REST-z_last)));
+      // LPF on the position as well, possibly overkill but it can't hurt
       if (filter) { position = (last_position+(ALPHA*(position-last_position))) };
       last_position = position;
 
+      // Keep the servo from going out of bounds
       if (position > 1) { position = 1};
       if (position < 0) { position = 0};
+
+      // Set the servo to the new position
       servo.move(servo1, position);
 
     });
