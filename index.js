@@ -39,37 +39,34 @@ servo.on('ready', function() {
   // Put the servo in the starting position
   servo.move(servo1, position);
 
-  accel.on('ready', function () {
+  accel.on('data', function (xyz) {      
 
-    accel.on('data', function (xyz) {      
+    if (filter) {
+      // Run the data through a low pass filter before storing
+      y_filtered = (y_last+(ALPHA*(xyz[1]-y_last)))
+      z_filtered = (z_last+(ALPHA*(xyz[2]-z_last)))
+    } else {
+      y_filtered = xyz[1];
+      z_filtered = xyz[2];  
+    }
 
-      if (filter) {
-        // Run the data through a low pass filter before storing
-        y_filtered = (y_last+(ALPHA*(xyz[1]-y_last)))
-        z_filtered = (z_last+(ALPHA*(xyz[2]-z_last)))
-      } else {
-        y_filtered = xyz[1];
-        z_filtered = xyz[2];  
-      }
+    // Stash the current values for the next data event
+    y_last = y_filtered;
+    z_last = z_filtered;
 
-      // Stash the current values for the next data event
-      y_last = y_filtered;
-      z_last = z_filtered;
+    // Calculate position for servo relative to angle of accelerometer
+    position = .5*(1+((-y_last/(Math.abs(y_last))) *(Z_REST-z_last)));
+    // LPF on the position as well, possibly overkill but it can't hurt
+    if (filter) { position = (last_position+(ALPHA*(position-last_position))) };
+    last_position = position;
 
-      // Calculate position for servo relative to angle of accelerometer
-      position = .5*(1+((-y_last/(Math.abs(y_last))) *(Z_REST-z_last)));
-      // LPF on the position as well, possibly overkill but it can't hurt
-      if (filter) { position = (last_position+(ALPHA*(position-last_position))) };
-      last_position = position;
+    // Keep the servo from going out of bounds
+    if (position > 1) { position = 1};
+    if (position < 0) { position = 0};
 
-      // Keep the servo from going out of bounds
-      if (position > 1) { position = 1};
-      if (position < 0) { position = 0};
+    // Set the servo to the new position
+    servo.move(servo1, position);
 
-      // Set the servo to the new position
-      servo.move(servo1, position);
-
-    });
   });
 });
 
