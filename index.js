@@ -2,8 +2,11 @@
 // Accelerometer is attached to Port B
 // Servo is attached to Port D
 var tessel = require('tessel');
-var accel = require('accel-mma84').use(tessel.port['B']);
-var servo = require('servo-pca9685').use(tessel.port['D']);
+var Accel = require('accel-mma84');
+var Servo = require('servo-pca9685');
+
+var accel = Accel.use(tessel.port['B']);
+var servo = Servo.use(tessel.port['D']);
 
 // Accelerometer Z value in resting position
 // Your may need to change this value
