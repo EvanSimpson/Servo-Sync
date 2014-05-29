@@ -1,16 +1,21 @@
 // Include Tessel and module libraries
 // Accelerometer is attached to Port B
-// Servo is attacher to Port D
+// Servo is attached to Port D
 var tessel = require('tessel');
 var accel = require('accel-mma84').use(tessel.port['B']);
 var servo = require('servo-pca9685').use(tessel.port['D']);
 
-// Constant used for LPF
-var ALPHA = 0.35;
-
 // Accelerometer Z value in resting position
 // Your may need to change this value
 var Z_REST = 0.97;
+
+// Constant used for LPF
+var ALPHA = 0.35;
+
+// Servo port, starting position, and historical position
+var servo1 = 1;
+var position = 0.5;
+var last_position = 0.5;
 
 // Accelerometer value holders
 var y_last = 0;
@@ -18,13 +23,8 @@ var z_last = 0;
 var y_filtered = 0;
 var z_filtered = 0;
 
-// Servo port, starting position, and historical position
-var servo1 = 1;
-var position = 0.5;
-var last_position = 0.5;
-
 // Flag for whether or not to use the LPF
-var filter = true;
+var filter = false;
 
 // Toggle LPF with the 'Config' button on Tessel
 tessel.button.on('press', function(time) {
