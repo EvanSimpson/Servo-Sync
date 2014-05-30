@@ -64,8 +64,7 @@ servo.on('ready', function() {
     last_position = position;
 
     // Keep the servo from going out of bounds
-    if (position > 1) { position = 1};
-    if (position < 0) { position = 0};
+    position > 1 ? position = 1 : position < 0 ? position = 0 : null;
 
     // Set the servo to the new position
     servo.move(servo1, position);
