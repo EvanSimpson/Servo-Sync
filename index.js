@@ -12,8 +12,11 @@ var servo = Servo.use(tessel.port['D']);
 // Your may need to change this value
 var Z_REST = 0.97;
 
-// Constant used for LPF
+// Constant used for Low Pass Filter
 var ALPHA = 0.35;
+
+// Flag for whether or not to use the LPF
+var filter = false;
 
 // Servo port, starting position, and historical position
 var servo1 = 1;
@@ -25,9 +28,6 @@ var y_last = 0;
 var z_last = 0;
 var y_filtered = 0;
 var z_filtered = 0;
-
-// Flag for whether or not to use the LPF
-var filter = false;
 
 // Toggle LPF with the 'Config' button on Tessel
 tessel.button.on('press', function(time) {
@@ -46,8 +46,8 @@ servo.on('ready', function() {
 
     if (filter) {
       // Run the data through a low pass filter before storing
-      y_filtered = (y_last+(ALPHA*(xyz[1]-y_last)))
-      z_filtered = (z_last+(ALPHA*(xyz[2]-z_last)))
+      y_filtered = lpf(xyz[1], y_last)
+      z_filtered = lpf(xyz[2], z_last)
     } else {
       y_filtered = xyz[1];
       z_filtered = xyz[2];  
@@ -60,7 +60,7 @@ servo.on('ready', function() {
     // Calculate position for servo relative to angle of accelerometer
     position = .5*(1+((-y_last/(Math.abs(y_last))) *(Z_REST-z_last)));
     // LPF on the position as well, possibly overkill but it can't hurt
-    if (filter) { position = (last_position+(ALPHA*(position-last_position))) };
+    if (filter) { position = lpf(position, last_position) };
     last_position = position;
 
     // Keep the servo from going out of bounds
@@ -71,3 +71,10 @@ servo.on('ready', function() {
 
   });
 });
+
+// Low Pass Filter - smooth out the data coming 
+// in from the accelerometer. Makes for less 
+// violent movement from the servo
+var lpf = function(current, last) {
+  return (last + (ALPHA*(current-last)));
+};
